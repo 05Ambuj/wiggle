@@ -1,0 +1,13 @@
+node_modules/
+.env
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+dist/
+build/
+coverage/
