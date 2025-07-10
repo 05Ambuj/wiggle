@@ -10,18 +10,25 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   const [messages, setMessages] = useState([]);
   const { user } = UserData();
   const [loading, setLoading] = useState(false);
-  const { socket } = SocketData();
+  const { socket, onlineUsers } = SocketData();
 
   const messageContainerRef = useRef(null);
+  const selectedChatRef = useRef(selectedChat);
 
+  // Keep ref updated with latest selectedChat
   useEffect(() => {
-    socket.on("newMessage", (message) => {
-      if (selectedChat._id === message.chatId) {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+  // Listen for new messages
+  useEffect(() => {
+    const handleNewMessage = (message) => {
+      if (selectedChatRef.current?._id === message.chatId) {
         setMessages((prev) => [...prev, message]);
       }
 
-      setChats((prev) => {
-        const updatedChat = prev.map((chat) => {
+      setChats((prev) =>
+        prev.map((chat) => {
           if (chat._id === message.chatId) {
             return {
               ...chat,
@@ -32,20 +39,18 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             };
           }
           return chat;
-        });
-        return updatedChat;
-      });
-    });
+        })
+      );
+    };
 
-    return () => socket.off("newMessage");
-  }, [socket, selectedChat, setChats]);
+    socket.on("newMessage", handleNewMessage);
+    return () => socket.off("newMessage", handleNewMessage);
+  }, [socket, setChats]);
 
   async function fetchMessages() {
     setLoading(true);
     try {
-      const { data } = await axios.get(
-        "/api/messages/" + selectedChat.users[0]._id
-      );
+      const { data } = await axios.get("/api/messages/" + selectedChat.users[0]._id);
       setMessages(data);
     } catch (error) {
       console.log(error);
@@ -71,11 +76,16 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         <>
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-2 border-b border-red-600/20">
-            <img
-              src={selectedChat.users[0].profilePic.url}
-              className="w-8 h-8 rounded-full object-cover border border-yellow-500"
-              alt="User"
-            />
+            <div className="relative">
+              <img
+                src={selectedChat.users[0].profilePic.url}
+                className="w-8 h-8 rounded-full object-cover border border-yellow-500"
+                alt="User"
+              />
+              {onlineUsers.includes(selectedChat.users[0]._id) && (
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-black rounded-full" />
+              )}
+            </div>
             <span className="text-base font-semibold tracking-wide">
               {selectedChat.users[0].name}
             </span>
