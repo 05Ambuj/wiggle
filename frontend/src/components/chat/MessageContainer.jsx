@@ -12,6 +12,8 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   const [loading, setLoading] = useState(false);
   const { socket } = SocketData();
 
+  const messageContainerRef = useRef(null);
+
   useEffect(() => {
     socket.on("newMessage", (message) => {
       if (selectedChat._id === message.chatId) {
@@ -44,22 +46,17 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       const { data } = await axios.get(
         "/api/messages/" + selectedChat.users[0]._id
       );
-
       setMessages(data);
-      setLoading(false);
     } catch (error) {
       console.log(error);
+    } finally {
       setLoading(false);
     }
   }
 
-  console.log(messages);
-
   useEffect(() => {
     fetchMessages();
   }, [selectedChat]);
-
-  const messageContainerRef = useRef(null);
 
   useEffect(() => {
     if (messageContainerRef.current) {
@@ -67,42 +64,46 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         messageContainerRef.current.scrollHeight;
     }
   }, [messages]);
+
   return (
-    <div>
+    <div className="flex flex-col w-full h-full bg-black/10 text-white font-['M_PLUS_1']">
       {selectedChat && (
-        <div className="flex flex-col">
-          <div className="flex w-full h-12 items-center gap-3">
+        <>
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-2 border-b border-red-600/20">
             <img
               src={selectedChat.users[0].profilePic.url}
-              className="w-8 h-8 rounded-full"
-              alt=""
+              className="w-8 h-8 rounded-full object-cover border border-yellow-500"
+              alt="User"
             />
-            <span>{selectedChat.users[0].name}</span>
+            <span className="text-base font-semibold tracking-wide">
+              {selectedChat.users[0].name}
+            </span>
           </div>
-          {loading ? (
-            <LoadingAnimation />
-          ) : (
-            <>
-              <div
-                ref={messageContainerRef}
-                className="flex flex-col gap-4 my-4 h-[400px] overflow-y-auto border border-gray-300 bg-gray-100 p-3"
-              >
-                {messages &&
-                  messages.map((e) => (
-                    <Message
-                      message={e.text}
-                      ownMessage={e.sender === user._id && true}
-                    />
-                  ))}
-              </div>
 
-              <MessageInput
-                setMessages={setMessages}
-                selectedChat={selectedChat}
-              />
-            </>
-          )}
-        </div>
+          {/* Message List */}
+          <div
+            ref={messageContainerRef}
+            className="flex-1 overflow-y-auto px-2 py-4 space-y-1 no-scrollbar bg-gradient-to-b from-[#0f0f0f] via-[#1a1a1a] to-[#1f1f1f]"
+          >
+            {loading ? (
+              <LoadingAnimation />
+            ) : (
+              messages.map((e, i) => (
+                <Message
+                  key={i}
+                  message={e.text}
+                  ownMessage={e.sender === user._id}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="border-t border-yellow-600/20 px-4 py-3 bg-black/20">
+            <MessageInput setMessages={setMessages} selectedChat={selectedChat} />
+          </div>
+        </>
       )}
     </div>
   );

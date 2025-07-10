@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ChatData } from "../../context/ChatContext";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 
 const MessageInput = ({ setMessages, selectedChat }) => {
   const [textMsg, setTextMsg] = useState("");
@@ -28,10 +29,8 @@ const MessageInput = ({ setMessages, selectedChat }) => {
               },
             };
           }
-
           return chat;
         });
-
         return updatedChat;
       });
     } catch (error) {
@@ -39,22 +38,27 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       toast.error(error.response.data.message);
     }
   };
+
   return (
-    <div>
-      <form onSubmit={handleMessage}>
-        <input
-          type="text"
-          placeholder="enter Message"
-          className="border border-gray-300 rounded-lg p-2 w-[80%]"
-          value={textMsg}
-          onChange={(e) => setTextMsg(e.target.value)}
-          required
-        />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded-lg">
-          send
-        </button>
-      </form>
-    </div>
+    <form
+      onSubmit={handleMessage}
+      className="flex items-center gap-3 bg-[#111] border border-[#2a2a2a] rounded-xl px-4 py-2"
+    >
+      <input
+        type="text"
+        placeholder="Forge your words..."
+        className="flex-1 bg-transparent outline-none text-white placeholder-gray-500 font-['M_PLUS_1']"
+        value={textMsg}
+        onChange={(e) => setTextMsg(e.target.value)}
+        required
+      />
+      <button
+        type="submit"
+        className="bg-gradient-to-br from-yellow-500 to-red-600 p-2 rounded-full hover:scale-105 transition-transform"
+      >
+        <PaperAirplaneIcon className="h-5 w-5 text-white -rotate-25 cursor-pointer" />
+      </button>
+    </form>
   );
 };
 
